@@ -18,7 +18,7 @@ unsigned char macsuf[3];
 
 int send_icmp(int fd, int ifindex, uint32_t src, uint32_t dst)
 {
-    unsigned char buffer[BUF_SIZE];
+	unsigned char buffer[BUF_SIZE];
 
 	// F8:1A:67:C7:F4:90
 	buffer[0] = 0xf8;
@@ -28,8 +28,8 @@ int send_icmp(int fd, int ifindex, uint32_t src, uint32_t dst)
 	buffer[4] = 0xf4;
 	buffer[5] = 0x90;
 
-    // src mac
-    buffer[6] = macpref[0];
+	// src mac
+	buffer[6] = macpref[0];
 	buffer[7] = macpref[1];
 	buffer[8] = macpref[2];
 	buffer[9] = macsuf[0];
@@ -47,8 +47,8 @@ int send_icmp(int fd, int ifindex, uint32_t src, uint32_t dst)
 	buffer[32] = (dst >> 16) & 0xFF;
 	buffer[33] = (dst >> 24) & 0xFF;
 
-    // icmp
-    buffer[12] = 0x08;
+	// icmp
+	buffer[12] = 0x08;
 	buffer[13] = 0x00;
 	
 	// version
@@ -80,65 +80,65 @@ int send_icmp(int fd, int ifindex, uint32_t src, uint32_t dst)
 	buffer[41] = 0x3f;
 	buffer[42] = 0x61;
 
-    if (send(fd, buffer, BUF_SIZE, 0) == -1)
+	if (send(fd, buffer, BUF_SIZE, 0) == -1)
 	{
-        perror("sendto():");
-        return -1;
-    }
+		perror("sendto():");
+		return -1;
+	}
 
-    return 0;
+	return 0;
 }
 
 int get_if_info(const char *ifname, int *ifindex)
 {
-    struct ifreq ifr;
-    int sd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ICMP));
-    if (sd <= 0)
+	struct ifreq ifr;
+	int sd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ICMP));
+	if (sd <= 0)
 	{
-        perror("socket()");
-        return -1;
-    }
-    if (strlen(ifname) > (IFNAMSIZ - 1))
-	{
-        printf("Too long interface name, MAX=%i\n", IFNAMSIZ - 1);
-        return -1;
-    }
-
-    strcpy(ifr.ifr_name, ifname);
-
-    if (ioctl(sd, SIOCGIFINDEX, &ifr) == -1)
-	{
-        perror("SIOCGIFINDEX");
-        close(sd);
+		perror("socket()");
 		return -1;
-    }
-    *ifindex = ifr.ifr_ifindex;
+	}
+	if (strlen(ifname) > (IFNAMSIZ - 1))
+	{
+		printf("Too long interface name, MAX=%i\n", IFNAMSIZ - 1);
+		return -1;
+	}
 
-    return 0;
+	strcpy(ifr.ifr_name, ifname);
+
+	if (ioctl(sd, SIOCGIFINDEX, &ifr) == -1)
+	{
+		perror("SIOCGIFINDEX");
+		close(sd);
+		return -1;
+	}
+	*ifindex = ifr.ifr_ifindex;
+
+	return 0;
 }
 
 int bind_icmp(int ifindex, int *fd)
 {
-    *fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ICMP));
-    if (*fd < 1)
+	*fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ICMP));
+	if (*fd < 1)
 	{
-        perror("socket()");
-        return -1;
-    }
-
-    struct sockaddr_ll sll;
-    memset(&sll, 0, sizeof(struct sockaddr_ll));
-    sll.sll_family = AF_PACKET;
-    sll.sll_ifindex = ifindex;
-	
-    if (bind(*fd, (struct sockaddr*) &sll, sizeof(struct sockaddr_ll)) < 0)
-	{
-        perror("bind");
-        close(*fd);
+		perror("socket()");
 		return -1;
-    }
+	}
 
-    return 0;
+	struct sockaddr_ll sll;
+	memset(&sll, 0, sizeof(struct sockaddr_ll));
+	sll.sll_family = AF_PACKET;
+	sll.sll_ifindex = ifindex;
+	
+	if (bind(*fd, (struct sockaddr*) &sll, sizeof(struct sockaddr_ll)) < 0)
+	{
+		perror("bind");
+		close(*fd);
+		return -1;
+	}
+
+	return 0;
 }
 
 
@@ -159,20 +159,20 @@ int increment_mac(int idx)
 
 int main(int argc, const char **argv)
 {
-    int ifindex;
+	int ifindex;
 	int icmp_fd;
 	
-    if (argc != 4)
+	if (argc != 4)
 	{
-        printf("Usage: %s if src dst\n", argv[0]);
-        return 1;
-    }
+		printf("Usage: %s if src dst\n", argv[0]);
+		return 1;
+	}
 	
 	uint32_t src = inet_addr(argv[2]);
 	uint32_t dst = inet_addr(argv[3]);
 	
 	if (get_if_info(argv[1], &ifindex) || bind_icmp(ifindex, &icmp_fd))
-        return 3;
+		return 3;
 
 	FILE *fin = fopen ("mac.txt", "r");
 	if (!fin)
@@ -203,4 +203,3 @@ int main(int argc, const char **argv)
 
 	return 0;
 }
-
