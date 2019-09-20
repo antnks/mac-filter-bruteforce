@@ -15,69 +15,8 @@
 
 unsigned char buffer[BUF_SIZE];
 
-int send_icmp(int fd, int ifindex, uint32_t src, uint32_t dst)
+int send_icmp(int fd, int ifindex)
 {
-	// F8:1A:67:C7:F4:90
-	buffer[0] = 0xf8;
-	buffer[1] = 0x1a;
-	buffer[2] = 0x67;
-	buffer[3] = 0xc7;
-	buffer[4] = 0xf4;
-	buffer[5] = 0x90;
-
-	// src mac
-	/*
-	buffer[6] = macpref[0];
-	buffer[7] = macpref[1];
-	buffer[8] = macpref[2];
-	buffer[9] = macsuf[0];
-	buffer[10] = macsuf[1];
-	buffer[11] = macsuf[2];
-	*/
-
-	// source ip
-	buffer[26] = (src) & 0xFF;
-	buffer[27] = (src >> 8) & 0xFF;
-	buffer[28] = (src >> 16) & 0xFF;
-	buffer[29] = (src >> 24) & 0xFF;
-	// destination ip
-	buffer[30] = (dst) & 0xFF;
-	buffer[31] = (dst >> 8) & 0xFF;
-	buffer[32] = (dst >> 16) & 0xFF;
-	buffer[33] = (dst >> 24) & 0xFF;
-
-	// icmp
-	buffer[12] = 0x08;
-	buffer[13] = 0x00;
-	
-	// version
-	buffer[14] = 0x45;
-	
-	// size
-	buffer[15] = 0x00;
-	buffer[16] = 0x00;
-	
-	// ipv4 stuff
-	buffer[17] = 0x1d;
-	buffer[18] = 0xc6;
-	buffer[19] = 0xec;
-	buffer[20] = 0x00;
-	buffer[21] = 0x00;
-	buffer[22] = 0x80;
-	buffer[23] = 0x01;
-	buffer[24] = 0x00;
-	buffer[25] = 0x00;
-	
-	// icmp payload
-	buffer[34] = 0x08;
-	buffer[35] = 0x00;
-	buffer[36] = 0x42;
-	buffer[37] = 0xbf;
-	buffer[38] = 0x00;
-	buffer[39] = 0x01;
-	buffer[40] = 0x54;
-	buffer[41] = 0x3f;
-	buffer[42] = 0x61;
 
 	if (send(fd, buffer, BUF_SIZE, 0) == -1)
 	{
@@ -153,7 +92,7 @@ int increment_mac(int idx)
 		return increment_mac(idx - 1);
 	}
 	macsuf[idx]++;
-	
+
 	return 0;
 }
 
@@ -168,10 +107,10 @@ int main(int argc, const char **argv)
 		printf("Usage: %s if src dst\n", argv[0]);
 		return 1;
 	}
-	
+
 	uint32_t src = inet_addr(argv[2]);
 	uint32_t dst = inet_addr(argv[3]);
-	
+
 	if (get_if_info(argv[1], &ifindex) || bind_icmp(ifindex, &icmp_fd))
 		return 3;
 
@@ -181,8 +120,60 @@ int main(int argc, const char **argv)
 		printf ("Can\'t open input file\n");
 		return 2;
 	}
-	
+
 	char chunk[7];
+
+	// F8:1A:67:C7:F4:90
+	buffer[0] = 0xf8;
+	buffer[1] = 0x1a;
+	buffer[2] = 0x67;
+	buffer[3] = 0xc7;
+	buffer[4] = 0xf4;
+	buffer[5] = 0x90;
+
+	// source ip
+	buffer[26] = (src) & 0xFF;
+	buffer[27] = (src >> 8) & 0xFF;
+	buffer[28] = (src >> 16) & 0xFF;
+	buffer[29] = (src >> 24) & 0xFF;
+	// destination ip
+	buffer[30] = (dst) & 0xFF;
+	buffer[31] = (dst >> 8) & 0xFF;
+	buffer[32] = (dst >> 16) & 0xFF;
+	buffer[33] = (dst >> 24) & 0xFF;
+
+	// icmp
+	buffer[12] = 0x08;
+	buffer[13] = 0x00;
+
+	// version
+	buffer[14] = 0x45;
+
+	// size
+	buffer[15] = 0x00;
+	buffer[16] = 0x00;
+
+	// ipv4 stuff
+	buffer[17] = 0x1d;
+	buffer[18] = 0xc6;
+	buffer[19] = 0xec;
+	buffer[20] = 0x00;
+	buffer[21] = 0x00;
+	buffer[22] = 0x80;
+	buffer[23] = 0x01;
+	buffer[24] = 0x00;
+	buffer[25] = 0x00;
+
+	// icmp payload
+	buffer[34] = 0x08;
+	buffer[35] = 0x00;
+	buffer[36] = 0x42;
+	buffer[37] = 0xbf;
+	buffer[38] = 0x00;
+	buffer[39] = 0x01;
+	buffer[40] = 0x54;
+	buffer[41] = 0x3f;
+	buffer[42] = 0x61;
 	
 	while (fscanf (fin, "%s", chunk) != EOF)
 	{
@@ -197,7 +188,7 @@ int main(int argc, const char **argv)
 		while (!increment_mac(2))
 		{
 			//printf ("%x:%x:%x:%x:%x:%x\n", macpref[0], macpref[1], macpref[2], macsuf[0], macsuf[1], macsuf[2]);
-			if (send_icmp(icmp_fd, ifindex, src, dst))
+			if (send_icmp(icmp_fd, ifindex))
 				return 4;
 		}
 	}
