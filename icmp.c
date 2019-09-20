@@ -13,13 +13,10 @@
 #define BUF_SIZE 43
 #define ETH_P_ICMP 0x0800
 
-unsigned char macpref[3];
-unsigned char macsuf[3];
+unsigned char buffer[BUF_SIZE];
 
 int send_icmp(int fd, int ifindex, uint32_t src, uint32_t dst)
 {
-	unsigned char buffer[BUF_SIZE];
-
 	// F8:1A:67:C7:F4:90
 	buffer[0] = 0xf8;
 	buffer[1] = 0x1a;
@@ -29,13 +26,15 @@ int send_icmp(int fd, int ifindex, uint32_t src, uint32_t dst)
 	buffer[5] = 0x90;
 
 	// src mac
+	/*
 	buffer[6] = macpref[0];
 	buffer[7] = macpref[1];
 	buffer[8] = macpref[2];
 	buffer[9] = macsuf[0];
 	buffer[10] = macsuf[1];
 	buffer[11] = macsuf[2];
-	
+	*/
+
 	// source ip
 	buffer[26] = (src) & 0xFF;
 	buffer[27] = (src >> 8) & 0xFF;
@@ -141,6 +140,8 @@ int bind_icmp(int ifindex, int *fd)
 	return 0;
 }
 
+unsigned char *macpref = buffer+6;
+unsigned char *macsuf = buffer+9;
 
 int increment_mac(int idx)
 {
