@@ -190,6 +190,7 @@ int main(int argc, const char **argv)
 			//printf ("%x:%x:%x:%x:%x:%x\n", macpref[0], macpref[1], macpref[2], macsuf[0], macsuf[1], macsuf[2]);
 			if (send_icmp(icmp_fd, ifindex))
 				return 4;
+			usleep(200);
 		}
 	}
 
